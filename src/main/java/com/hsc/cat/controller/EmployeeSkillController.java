@@ -2,6 +2,8 @@ package com.hsc.cat.controller;
 
 import java.util.List;
 
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -25,12 +27,11 @@ import com.hsc.cat.utilities.JSONOutputEnum;
 import com.hsc.cat.utilities.JSONOutputModel;
 import com.hsc.cat.utilities.RESTURLConstants;
 
-import ch.qos.logback.classic.Logger;
 
 @RestController
 public class EmployeeSkillController {
 
-	private final Logger LOGGER = (Logger) LoggerFactory.getLogger(this.getClass());
+	private static final Logger LOGGER = (Logger) LogManager.getLogger(EmployeeSkillController.class);
 	
 	@Autowired
 	private EmployeeSkillService updateSkillService;
@@ -41,6 +42,17 @@ public class EmployeeSkillController {
 	public JSONOutputModel updateSkill(@RequestBody UpdateSkillsListVO updateSkillsListVO) {
 		JSONOutputModel output = new JSONOutputModel();
 		
+		
+		if(updateSkillsListVO.getListOfEmployeeSkills()==null) {
+			output.setStatus(JSONOutputEnum.FAILURE.getValue());
+			output.setMessage("Invalid request");
+			return output;
+		}
+		else if(updateSkillsListVO.getListOfEmployeeSkills().isEmpty()) {
+			output.setStatus(JSONOutputEnum.FAILURE.getValue());
+			output.setMessage("Invalid request");
+			return output;
+		}
 		UpdateSkillResponse response=updateSkillService.updateSkill(updateSkillsListVO);
 		 List<UpdateSkillTO> updateSkillTOList=response.getUpdateSkillTOList();
 		
@@ -68,15 +80,30 @@ public class EmployeeSkillController {
 	@ResponseBody
 	@RequestMapping(value=RESTURLConstants.VIEW_SKILL,method=RequestMethod.GET,produces = "application/json",consumes="application/json")
 	@CrossOrigin
-	public JSONOutputModel viewSkills(@PathVariable ("empId") String empid) {
+	public JSONOutputModel viewSkills(@PathVariable ("empId") String empid,@PathVariable("viewHistory")boolean flag) {
 		JSONOutputModel output = new JSONOutputModel();
-		ViewSkillListTO viewSkillListTO = updateSkillService.viewSkills(empid);
-		if(viewSkillListTO!=null && !viewSkillListTO.getListOfEmployeeSkills().isEmpty() && !viewSkillListTO.getListOfSkillId().isEmpty()) {
+		
+		ViewSkillListTO viewSkillListTO= new ViewSkillListTO();
+		
+		
+		if(flag)
+		{
+			 viewSkillListTO=updateSkillService.getViewHistory(empid);	
+		}
+		else {
+		
+		 viewSkillListTO = updateSkillService.viewSkills(empid);
+		}
+		
+		
+		System.out.println(viewSkillListTO);
+		//System.out.println(viewSkillListTO.getListOfEmployeeSkills().size());
+		if(viewSkillListTO!=null && viewSkillListTO.getListOfEmployeeSkills()!=null && !viewSkillListTO.getListOfEmployeeSkills().isEmpty() &&viewSkillListTO.getListOfSkillId()!=null &&  !viewSkillListTO.getListOfSkillId().isEmpty()) {
 			output.setData(viewSkillListTO);
 			output.setStatus(JSONOutputEnum.SUCCESS.getValue());
 			output.setMessage("Employee skills fetched successfully");
 		}
-		else if(viewSkillListTO!=null && (viewSkillListTO.getListOfEmployeeSkills().isEmpty() ||viewSkillListTO.getListOfSkillId().isEmpty())){
+		else {
 			output.setData(viewSkillListTO);
 			output.setStatus(JSONOutputEnum.FAILURE.getValue());
 			output.setMessage("Employee skills entry not there");
@@ -114,7 +141,7 @@ public class EmployeeSkillController {
 	
 	
 	@ResponseBody
-	@RequestMapping(value="/getAllSelfRatedSkills/{empId}",method=RequestMethod.GET,produces = "application/json",consumes="application/json")
+	@RequestMapping(value=RESTURLConstants.GET_ALL_SELF_RATED_SKILLS,method=RequestMethod.GET,produces = "application/json",consumes="application/json")
 	@CrossOrigin
 	public JSONOutputModel getAllSelfRatedSkills(@PathVariable("empId") String empId) {
 		JSONOutputModel output = new JSONOutputModel();

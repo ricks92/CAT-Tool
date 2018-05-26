@@ -20,8 +20,9 @@ import com.hsc.cat.utilities.JSONOutputEnum;
 import com.hsc.cat.utilities.JSONOutputModel;
 import com.hsc.cat.utilities.RESTURLConstants;
 
-import ch.qos.logback.classic.Logger;
 
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @RestController
@@ -29,7 +30,7 @@ import org.slf4j.LoggerFactory;
 public class SkillController {
 
 
-	private final Logger LOGGER = (Logger) LoggerFactory.getLogger(this.getClass());
+	private static final Logger LOGGER = (Logger) LogManager.getLogger(SkillController.class);
 	
 	@Autowired
 	private SkillService skillService;
@@ -45,8 +46,8 @@ public class SkillController {
 			if(skillTO.getIssue()!=null) {
 				output.setData(new String(skillTO.getIssue()));
 				output.setStatus(JSONOutputEnum.FAILURE.getValue());
-				output.setMessage("Duplicate entry is not allowed!!");
-				LOGGER.error("Duplicate entry is not allowed!!");
+				output.setMessage(skillTO.getIssue());
+				LOGGER.error(skillTO.getIssue());
 			}
 			else {
 			output.setData(skillTO);
@@ -92,7 +93,7 @@ public class SkillController {
 	
 	
 	@ResponseBody
-	@RequestMapping(value="searchSkill/{skillName}",method=RequestMethod.GET)
+	@RequestMapping(value="/searchSkill/{skillName}",method=RequestMethod.GET)
 	@CrossOrigin
 	public JSONOutputModel searchSkill(@PathVariable("skillName") String skillName) {
 		JSONOutputModel output = new JSONOutputModel();

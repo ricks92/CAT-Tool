@@ -5,9 +5,9 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import javax.transaction.Transactional;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,26 +17,31 @@ import com.hsc.cat.VO.AddSkillVO;
 import com.hsc.cat.entity.Skill;
 import com.hsc.cat.repository.SkillRepository;
 
-import ch.qos.logback.classic.Logger;
 
 
 
 @Service
-@Transactional
 public class SkillService {
 	
-	private final Logger LOGGER = (Logger) LoggerFactory.getLogger(this.getClass());
+	private static final Logger LOGGER = (Logger) LogManager.getLogger(SkillService.class);
 
 	@Autowired
 	private SkillRepository skillRepository;
 	
 	public SkillTO addSkill(AddSkillVO svo) {
+		if(svo.getSkillName()==null ||svo.getDescription()==null) {
+			SkillTO skillTO = new SkillTO();
+			skillTO.setIssue("Null not allowed");
+			LOGGER.error("Null not allowed");
+			return skillTO;
+		}
 		
 		Skill recordExists=skillRepository.findBySkillName(svo.getSkillName());
 		
 		if(recordExists!=null) {
 			SkillTO skillTO = new SkillTO();
 			skillTO.setIssue("Record already exists");
+			LOGGER.error("Skill "+svo.getSkillName()+" already exists in the database");
 			return skillTO;
 		}
 		Skill skill = new Skill();
@@ -108,9 +113,13 @@ public class SkillService {
 		if(skills!=null && !skills.isEmpty()) {
 			searchSkillTO.setSkills(skills);
 			searchSkillTO.setExists(true);
+			LOGGER.debug("Skill found in the database");
 		}
 		else
-		searchSkillTO.setExists(false);
+		{
+			searchSkillTO.setExists(false);
+			LOGGER.debug("Skill not found in the database");
+		}
 		
 		return searchSkillTO;
 	}

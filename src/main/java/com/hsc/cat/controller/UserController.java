@@ -9,16 +9,16 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+
 import com.hsc.cat.TO.ResponseTO;
-import com.hsc.cat.TO.UserTO;
 import com.hsc.cat.VO.ChangePasswordVO;
 import com.hsc.cat.VO.ForgetPasswordVO;
 import com.hsc.cat.VO.ValidateSecurityQuestionVO;
 import com.hsc.cat.VO.ValidateUserVO;
-import com.hsc.cat.entity.UserDetails;
 import com.hsc.cat.service.UserDetailService;
 import com.hsc.cat.utilities.JSONOutputEnum;
 import com.hsc.cat.utilities.JSONOutputModel;
+import com.hsc.cat.utilities.RESTURLConstants;
 
 import ch.qos.logback.classic.Logger;
 
@@ -52,7 +52,7 @@ public class UserController {
 	
 	
 	@ResponseBody
-	@RequestMapping(value="/validateSecurityQuestion",method=RequestMethod.POST,produces = "application/json",consumes="application/json")
+	@RequestMapping(value=RESTURLConstants.VALIDATE_SECURITY_QUESTIONS,method=RequestMethod.POST,produces = "application/json",consumes="application/json")
 	@CrossOrigin
 	public JSONOutputModel validateSecurityQuestion(@RequestBody ValidateSecurityQuestionVO validateSecurityQuestionVO) {
 		JSONOutputModel output= new JSONOutputModel();
@@ -76,7 +76,7 @@ public class UserController {
 	
 	
 	
-	@RequestMapping(value="validateUser",method=RequestMethod.POST)
+	@RequestMapping(value=RESTURLConstants.VALIDATE_USER,method=RequestMethod.POST)
 	@ResponseBody
 	@CrossOrigin
 	public ResponseTO validateUser(@RequestBody ValidateUserVO validateUserVO) {
@@ -94,7 +94,7 @@ public class UserController {
 	
 	
 	
-	@RequestMapping(value="changePassword",method=RequestMethod.POST)
+	@RequestMapping(value=RESTURLConstants.CHANGE_PASSWORD,method=RequestMethod.POST)
 	@ResponseBody
 	@CrossOrigin
 	public ResponseTO changePassword(@RequestBody ChangePasswordVO changePasswordVO) {
@@ -107,7 +107,7 @@ public class UserController {
 		
 	}
 	
-	@RequestMapping(value="forgetPassword",method=RequestMethod.POST)
+	@RequestMapping(value=RESTURLConstants.FORGOT_PASSWORD,method=RequestMethod.POST)
 	@ResponseBody
 	@CrossOrigin
 	public ResponseTO forgetPassword(@RequestBody ForgetPasswordVO forgetPasswordVO) {

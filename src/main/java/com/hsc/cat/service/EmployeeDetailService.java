@@ -7,8 +7,8 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.transaction.Transactional;
-
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -27,19 +27,18 @@ import com.hsc.cat.entity.EmployeeDetails;
 import com.hsc.cat.entity.EmployeeSkillEntity;
 import com.hsc.cat.entity.UserDetails;
 import com.hsc.cat.enums.ApprovalStatusEnum;
+import com.hsc.cat.map.FetchMapService;
 import com.hsc.cat.repository.EmployeeDetailRepository;
 import com.hsc.cat.repository.EmployeeSkillRepository;
 import com.hsc.cat.repository.UserRepository;
 import com.hsc.cat.utilities.JSONOutputEnum;
 import com.hsc.cat.utilities.Roles;
 
-import ch.qos.logback.classic.Logger;
 
 @Service
-@Transactional
 public class EmployeeDetailService {
 	
-	private final Logger LOGGER = (Logger) LoggerFactory.getLogger(this.getClass());
+	private static final Logger LOGGER = (Logger) LogManager.getLogger(EmployeeDetailService.class);
 
 	@Autowired
 	private EmployeeDetailRepository employeeDetailRepository;
@@ -62,9 +61,13 @@ public class EmployeeDetailService {
 	      employeeTO.setIssue("Username already exists");
 	      if(userAlreadyExists) return employeeTO;
 	      
-	      EmployeeDetails emailAlreadyExists=employeeDetailRepository.getEmail(evo.getEmail());
-	      employeeTO.setIssue("Email already exists");
-	      if(emailAlreadyExists!=null) return employeeTO;
+	      List<EmployeeDetails> emailAlreadyExists=employeeDetailRepository.getEmail(evo.getEmail());
+	     
+	     if(emailAlreadyExists!=null && !emailAlreadyExists.isEmpty())
+	      { 
+	   employeeTO.setIssue("Email already exists");
+	   return employeeTO;
+	      }
 	      
 		EmployeeDetails emp= new EmployeeDetails();
 		UserDetails user = new UserDetails();
@@ -105,10 +108,10 @@ public class EmployeeDetailService {
 			
 			
 			
-			String from = "undermyumbrella247@gmail.com";
+			String from = "catuser1234@gmail.com";
 			String to = "knwnobounds@gmail.com";
 			String subject = "Request came to register manager!";
-			String body = "Request came to register manager with employee id:"+evo.getUsername()+"\nDetails: \nEmployee id: "+evo.getUsername()+"\nFirst Name: "+evo.getFirstName()+"\nLast Name: "+evo.getLastName()+"\nEmail: "+evo.getEmail()+"\nPlease verify: 'http://www.fb.com'";
+			String body = "Request came to register manager with employee id:"+evo.getUsername()+"\nDetails: \nEmployee id: "+evo.getUsername()+"\nFirst Name: "+evo.getFirstName()+"\nLast Name: "+evo.getLastName()+"\nEmail: "+evo.getEmail()+"\nPlease verify: 'http://localhost:8030/verifyManager/'"+evo.getUsername();
 			
 			mailSender.sendMail(from, to, subject, body); //send email
 			  user.setEmployeeDetails(emp);  //save manager
@@ -124,13 +127,13 @@ public class EmployeeDetailService {
 //			emp.setApprovalStatus(ApprovalStatusEnum.NA.getStatus());
 //		}
 		
-		if(evo.getRole().equals(Roles.EMPLOYEE) && emp.getManagerId()!=null) {  //Check if it is a valid manager id
-			if(!employeeDetailRepository.exists(emp.getManagerId())) {
-				System.out.println("Manger details incorrect");
-				//do nothing
-				employeeTO.setIssue("Manger details incorrect");
-			}
-			else if(employeeDetailRepository.exists(emp.getManagerId())) {
+		if(evo.getRole().equals(Roles.EMPLOYEE) ) {  //Check if it is a valid manager id
+//			if(!employeeDetailRepository.exists(emp.getManagerId())) {
+//				System.out.println("Manger details incorrect");
+//				//do nothing
+//				employeeTO.setIssue("Manger details incorrect");
+//			}
+			//else if(employeeDetailRepository.exists(emp.getManagerId())) {
 				emp.setApprovalStatus(ApprovalStatusEnum.NA.getStatus());
 				user.setEmployeeDetails(emp);
 				 userRepository.save(user);
@@ -139,7 +142,7 @@ public class EmployeeDetailService {
 				 userRepository.save(user);
 				 saved = employeeDetailRepository.save(emp);
 				
-				}
+				//}
 		}
 //		else {
 //		 user.setEmployeeDetails(emp);
@@ -182,7 +185,7 @@ public class EmployeeDetailService {
 		else {
 			for(EmployeeDetails e:employeesToDelete) {
 				String email=e.getEmail();
-				String from = "undermyumbrella247@gmail.com";
+				String from = "catuser1234@gmail.com";
 				String to = email;
 				String subject = "Your request has been rejected!";
 				String body =  "Your request has been rejected!";
@@ -217,9 +220,9 @@ public class EmployeeDetailService {
 	
 	
 	
-	public boolean updateApprovalStatus(String empId, String approvalStatus) {
+	public boolean updateApprovalStatus(String empId) {
 		boolean result = Boolean.FALSE;
-		int updatdRow = employeeDetailRepository.updateManagersApprovalStatus(approvalStatus, empId);
+		int updatdRow = employeeDetailRepository.updateManagersApprovalStatus(empId);
 		if (updatdRow > 0) {
 			result = Boolean.TRUE;
 		}
@@ -249,10 +252,10 @@ public class EmployeeDetailService {
 					viewTeamTO.setListOfEmployee(listOfEmployee);
 					viewTeamTO.setResponseCode("1");
 					viewTeamTO.setResponseMessage("SUCCESS");
-				} else {
+				} /*else {
 					viewTeamTO.setResponseCode("8");
 					viewTeamTO.setResponseMessage("No employee exists against this managerId");
-				}
+				}*/
 			} else {
 				viewTeamTO.setResponseCode("8");
 				viewTeamTO.setResponseMessage("No employee exists against this managerId");

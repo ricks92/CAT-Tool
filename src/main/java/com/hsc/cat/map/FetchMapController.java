@@ -1,5 +1,7 @@
 package com.hsc.cat.map;
 
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -10,10 +12,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.hsc.cat.controller.SkillController;
 import com.hsc.cat.utilities.JSONOutputEnum;
 import com.hsc.cat.utilities.JSONOutputModel;
 
-import ch.qos.logback.classic.Logger;
 
 
 
@@ -21,7 +23,7 @@ import ch.qos.logback.classic.Logger;
 public class FetchMapController {
 
 	
-	private final Logger LOGGER = (Logger) LoggerFactory.getLogger(this.getClass());
+	private static final Logger LOGGER = (Logger) LogManager.getLogger(FetchMapController.class);
 	@Autowired
 	private FetchMapService fetchMapService;
 	
@@ -38,13 +40,13 @@ public class FetchMapController {
 		
 		output.setData(fetchMapTO);
 		
-		if(fetchMapTO!=null){
+		if(fetchMapTO!=null && fetchMapTO.getSkillMapResponse()!=null &&( !fetchMapTO.getListOfselfReviews().isEmpty() ||!fetchMapTO.getListOfpeerReviews().isEmpty())) {
 			
-		output.setMessage("Map fetched successfully");
-		output.setStatus(JSONOutputEnum.SUCCESS.getValue());
+			output.setMessage("Map fetched successfully");
+			output.setStatus(JSONOutputEnum.SUCCESS.getValue());
 		}
-		else{
-			output.setMessage("Map couldn't be fetched");
+		else {
+			output.setMessage("No data found");
 			output.setStatus(JSONOutputEnum.FAILURE.getValue());
 		}
 		return output;

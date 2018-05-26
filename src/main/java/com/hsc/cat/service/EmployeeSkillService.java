@@ -10,8 +10,8 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import javax.transaction.Transactional;
-
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -33,14 +33,12 @@ import com.hsc.cat.repository.EmployeeDetailRepository;
 import com.hsc.cat.repository.EmployeeSkillRepository;
 import com.hsc.cat.repository.SkillRepository;
 
-import ch.qos.logback.classic.Logger;
 
 
 @Service
-@Transactional
 public class EmployeeSkillService {
 	
-	private final Logger LOGGER = (Logger) LoggerFactory.getLogger(this.getClass());
+	private static final Logger LOGGER = (Logger) LogManager.getLogger(EmployeeSkillService.class);
 	
 
 	@Autowired
@@ -158,10 +156,10 @@ else
 		for(UpdateSkillVO updateSkillVO:updateSkillVOList) {
 			
 		//	if(employeeSkillRepository.exists(updateSkillVO.getSkillId())) {
-				EmployeeSkillEntity recordExists=employeeSkillRepository.findByEmpIdAndSkillIdAndWeekNumberAndRatingDoneBy(updateSkillVO.getEmpId(), updateSkillVO.getSkillId(), updateSkillVO.getWeekNumber(), updateSkillVO.getRatingDoneBy());
+				EmployeeSkillEntity recordExists=employeeSkillRepository.findByEmpIdAndSkillIdAndWeekNumberAndRatingDoneByAndRatingDoneByEmpId(updateSkillVO.getEmpId(), updateSkillVO.getSkillId(), updateSkillVO.getWeekNumber(), updateSkillVO.getRatingDoneBy(),updateSkillVO.getRatingDoneByEmpId());
 				
 				if(recordExists==null) {
-					LOGGER.debug("Creating new row for rating and comments");
+					LOGGER.debug("Creating new row for rating and comments..Rating \"+updateSkillVO.getEmpId()+\" Feedback is being given by \"+updateSkillVO.getRatingDoneByEmpId()");
 					EmployeeSkillEntity updateSkillEntity= new EmployeeSkillEntity();
 					updateSkillEntity.setEmpId(updateSkillVO.getEmpId());
 					updateSkillEntity.setSkillId(updateSkillVO.getSkillId());
@@ -179,14 +177,14 @@ else
 				}
 				
 				else if(recordExists!=null) {
-					LOGGER.debug("Updating already existing rating and comments");
+					LOGGER.debug("Updating already existing rating and comments..Rating "+updateSkillVO.getEmpId()+" Feedback is being given by "+updateSkillVO.getRatingDoneByEmpId());
 					
 					Date date = new Date();
-				employeeSkillRepository.updateEmployeeSkill(updateSkillVO.getSkillId(), LevelsEnum.getLevelNameFromLevel(updateSkillVO.getRating()),updateSkillVO.getComment(),updateSkillVO.getWeekNumber(),updateSkillVO.getRatingDoneBy(),date);
+				employeeSkillRepository.updateEmployeeSkill(updateSkillVO.getSkillId(), LevelsEnum.getLevelNameFromLevel(updateSkillVO.getRating()),updateSkillVO.getComment(),updateSkillVO.getWeekNumber(),updateSkillVO.getRatingDoneBy(),date,updateSkillVO.getEmpId(),updateSkillVO.getRatingDoneByEmpId());
 				
 				
 				
-				EmployeeSkillEntity updateSkillEntity=employeeSkillRepository.findByEmpIdAndSkillIdAndWeekNumberAndRatingDoneBy(updateSkillVO.getEmpId(), updateSkillVO.getSkillId(), updateSkillVO.getWeekNumber(), updateSkillVO.getRatingDoneBy());
+				EmployeeSkillEntity updateSkillEntity=employeeSkillRepository.findByEmpIdAndSkillIdAndWeekNumberAndRatingDoneByAndRatingDoneByEmpId(updateSkillVO.getEmpId(), updateSkillVO.getSkillId(), updateSkillVO.getWeekNumber(), updateSkillVO.getRatingDoneBy(),updateSkillVO.getRatingDoneByEmpId());
 				
 				
 				System.out.println("\n\n\n"+updateSkillEntity.toString());
@@ -253,14 +251,73 @@ else
 	
 	public ViewSkillListTO viewSkills(String empid) {
 		ViewSkillListTO skillsList= new ViewSkillListTO();
-		
 		List<ViewSkillTO> viewSkillTOList=new ArrayList<>();
-		List<EmployeeSkillEntity> employeeSkillEntityList=employeeSkillRepository.findByEmpIdSkill(empid);
+		List<EmployeeSkillEntity> employeeSkillEntityList=new ArrayList<>();
 		Set<Integer> listOfSkillId=new HashSet<Integer>();
+	/*	if(flag=="true")
+		{
+			 employeeSkillEntityList=employeeSkillRepository.getViewHistory(empid);
+			 
+			 HashMap<Integer,EmployeeSkillEntity> selfReviewsMap=new HashMap<>();
+			 HashMap<Integer,EmployeeSkillEntity> peerReviewsMap=new HashMap<>();
+			 for(EmployeeSkillEntity employeeSkillEntity : employeeSkillEntityList) {
+				 
+				 if(employeeSkillEntity.getRatingDoneBy().equalsIgnoreCase("Self")) {
+					 LOGGER.debug("View history self data putting in map");
+					 if(selfReviewsMap.containsKey(employeeSkillEntity.getSkillId())) {
+						 //do nothing
+					 }
+					 else
+						 {
+						 selfReviewsMap.put(employeeSkillEntity.getSkillId(), employeeSkillEntity);
+						 ViewSkillTO viewSkillTO=modelConversion(employeeSkillEntity);
+							viewSkillTOList.add(viewSkillTO);
+								listOfSkillId.add(employeeSkillEntity.getSkillId());
+						 }
+				 }
+				 else if(employeeSkillEntity.getRatingDoneBy().equalsIgnoreCase("Peer"))
+				 {
+					 LOGGER.debug("View history peer data putting in map");
+					 if(peerReviewsMap.containsKey(employeeSkillEntity.getSkillId())) {
+						 //do nothing
+					 }
+					 else
+						 {
+						 peerReviewsMap.put(employeeSkillEntity.getSkillId(), employeeSkillEntity);
+						 ViewSkillTO viewSkillTO=modelConversion(employeeSkillEntity);
+							viewSkillTOList.add(viewSkillTO);
+								listOfSkillId.add(employeeSkillEntity.getSkillId());
+						 }
+				 }
+				 
+				 skillsList.setListOfSkillId(listOfSkillId);
+					skillsList.setListOfEmployeeSkills(viewSkillTOList);
+				 
+				 //All latest data inserted
+				 
+				 
+				 
+				 
+			 }
+			 
+			 
+			 
+		}*/
+		//else {
+		 employeeSkillEntityList=employeeSkillRepository.findByEmpIdSkill(empid);
+		
+		System.out.println("\n\n\n\n66666666666666666666"+employeeSkillEntityList+" "+" Employeeskill is not null "+employeeSkillEntityList!=null+" List is empty  "+employeeSkillEntityList.isEmpty());
+		if((employeeSkillEntityList!=null && employeeSkillEntityList.isEmpty())){
+			LOGGER.debug("There is no skills record in table for employee id:"+empid);
+			LOGGER.info("There is no skills record in table for employee id:"+empid);
+			return skillsList;
+		}
+		
+		 listOfSkillId=new HashSet<Integer>();
 		
 		for(EmployeeSkillEntity employeeSkillEntity : employeeSkillEntityList) {
 			
-				ViewSkillTO viewSkillTO = new ViewSkillTO();
+				/*ViewSkillTO viewSkillTO = new ViewSkillTO();
 				viewSkillTO.setEmpId(employeeSkillEntity.getEmpId());
 				viewSkillTO.setSkillId(employeeSkillEntity.getSkillId());
 				viewSkillTO.setRating(LevelsEnum.getLevelFromName(employeeSkillEntity.getRating()));
@@ -273,12 +330,17 @@ else
 				viewSkillTO.setDescription(skill.getDescription());
 				viewSkillTO.setCreationDateString(getDateForResponse(employeeSkillEntity.getCreationDate()));
 				///viewSkillTO.setComment(employeeSkillEntity.getComment());
-				viewSkillTOList.add(viewSkillTO);
+				 * 
+*/				
+			ViewSkillTO viewSkillTO=modelConversion(employeeSkillEntity);
+			viewSkillTOList.add(viewSkillTO);
 				listOfSkillId.add(employeeSkillEntity.getSkillId());
 			
 		}
 			skillsList.setListOfSkillId(listOfSkillId);
 			skillsList.setListOfEmployeeSkills(viewSkillTOList);
+			
+		
 			
 			String selfComment=null;
 			String peerComment=null;
@@ -404,7 +466,7 @@ else
 		   map.put(skill, null);
 	   }
 	   
-	   System.out.println("MAp:"+map);
+	   System.out.println("MAP:"+map);
 	   
 	  for(Entry<Skill, Object> entry:map.entrySet()) {
 		 SkillTO skillTO=skillService.modelConversion(entry.getKey());
@@ -412,6 +474,79 @@ else
 	  }
 	   return skillTOList;
    }
+   
+   
+   
+   
+  public ViewSkillListTO getViewHistory(String empid) {
+	  ViewSkillListTO skillsList= new ViewSkillListTO();
+		List<ViewSkillTO> viewSkillTOList=new ArrayList<>();
+		List<EmployeeSkillEntity> employeeSkillEntityList=new ArrayList<>();
+		Set<Integer> listOfSkillId=new HashSet<Integer>();
+		
+			 employeeSkillEntityList=employeeSkillRepository.getViewHistory(empid);
+			 
+			 HashMap<Integer,EmployeeSkillEntity> selfReviewsMap=new HashMap<>();
+			 HashMap<Integer,EmployeeSkillEntity> peerReviewsMap=new HashMap<>();
+			 for(EmployeeSkillEntity employeeSkillEntity : employeeSkillEntityList) {
+				 
+				 if(employeeSkillEntity.getRatingDoneBy().equalsIgnoreCase("Self")) {
+					 LOGGER.debug("View history self data putting in map");
+					 if(selfReviewsMap.containsKey(employeeSkillEntity.getSkillId())) {
+						 //do nothing
+					 }
+					 else
+						 {
+						 selfReviewsMap.put(employeeSkillEntity.getSkillId(), employeeSkillEntity);
+						 ViewSkillTO viewSkillTO=modelConversion(employeeSkillEntity);
+							viewSkillTOList.add(viewSkillTO);
+								listOfSkillId.add(employeeSkillEntity.getSkillId());
+						 }
+				 }
+				 else if(employeeSkillEntity.getRatingDoneBy().equalsIgnoreCase("Peer"))
+				 {
+					 LOGGER.debug("View history peer data putting in map");
+					 if(peerReviewsMap.containsKey(employeeSkillEntity.getSkillId())) {
+						 //do nothing
+					 }
+					 else
+						 {
+						 peerReviewsMap.put(employeeSkillEntity.getSkillId(), employeeSkillEntity);
+						 ViewSkillTO viewSkillTO=modelConversion(employeeSkillEntity);
+							viewSkillTOList.add(viewSkillTO);
+								listOfSkillId.add(employeeSkillEntity.getSkillId());
+						 }
+				 }
+				 
+				 skillsList.setListOfSkillId(listOfSkillId);
+					skillsList.setListOfEmployeeSkills(viewSkillTOList);
+					
+			 }
+			 
+			 String selfComment=null;
+				String peerComment=null;
+//				String selfComment=employeeSkillRepository.getLatestSelfComment(empid).get(0);
+//				String peerComment=employeeSkillRepository.getLatestPeerComment(empid).get(0);
+				List<String> selfCommentList=employeeSkillRepository.getLatestSelfComment(empid);
+				if(selfCommentList!=null && !selfCommentList.isEmpty())
+					{
+					LOGGER.debug("Latest self comment fetched for: "+empid);
+					selfComment=selfCommentList.get(0);
+					}
+				
+				List<String> peerCommentList=employeeSkillRepository.getLatestPeerComment(empid);
+				if(peerCommentList!=null && !peerCommentList.isEmpty())
+					{
+					LOGGER.debug("Latest peer comment fetched for: "+empid);
+					peerComment=peerCommentList.get(0);
+					}
+				
+				
+			  skillsList.setSelfComment(selfComment);
+			  skillsList.setPeerComment(peerComment);
+			return skillsList;
+		
+  }
 
 	public List<UpdateSkillTO> modelConversion(List<EmployeeSkillEntity> updateSkillEntityList) {
 		List<UpdateSkillTO> updateSkillTOList= new ArrayList<>();
@@ -432,5 +567,25 @@ else
 		}
 		
 		return updateSkillTOList;
+	}
+	
+	
+	
+	public ViewSkillTO modelConversion(EmployeeSkillEntity employeeSkillEntity) {
+		ViewSkillTO viewSkillTO = new ViewSkillTO();
+		viewSkillTO.setEmpId(employeeSkillEntity.getEmpId());
+		viewSkillTO.setSkillId(employeeSkillEntity.getSkillId());
+		viewSkillTO.setRating(LevelsEnum.getLevelFromName(employeeSkillEntity.getRating()));
+		viewSkillTO.setRatingDoneBy(employeeSkillEntity.getRatingDoneBy());
+		viewSkillTO.setWeekNumber("week-"+employeeSkillEntity.getWeekNumber());
+		viewSkillTO.setCreationDate(employeeSkillEntity.getCreationDate());
+		Skill skill=skillRepository.findOne(employeeSkillEntity.getSkillId());
+		viewSkillTO.setSkillName(skill.getSkillName());
+		viewSkillTO.setRatingDoneByEmpId(employeeSkillEntity.getRatingDoneByEmpId());
+		viewSkillTO.setDescription(skill.getDescription());
+		viewSkillTO.setCreationDateString(getDateForResponse(employeeSkillEntity.getCreationDate()));
+		///viewSkillTO.setComment(employeeSkillEntity.getComment());
+		
+		return viewSkillTO;
 	}
 }

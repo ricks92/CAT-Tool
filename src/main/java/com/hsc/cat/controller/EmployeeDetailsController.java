@@ -26,8 +26,10 @@ import com.hsc.cat.service.EmployeeDetailService;
 import com.hsc.cat.utilities.JSONOutputEnum;
 import com.hsc.cat.utilities.JSONOutputModel;
 import com.hsc.cat.utilities.RESTURLConstants;
+import com.hsc.cat.utilities.StatusCode;
 
-import ch.qos.logback.classic.Logger;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 
 import com.hsc.cat.TO.ManagerDetails;
 import com.hsc.cat.TO.ResponseTO;
@@ -36,7 +38,7 @@ import com.hsc.cat.TO.ViewTeamTO;
 @RestController
 public class EmployeeDetailsController {
 
-	private final Logger LOGGER = (Logger) LoggerFactory.getLogger(this.getClass());
+	private static final Logger LOGGER = (Logger) LogManager.getLogger(EmployeeDetailsController.class);
 	
 	@Autowired
 	private EmployeeDetailService employeeDetailService;
@@ -53,7 +55,12 @@ public class EmployeeDetailsController {
 			if(employeeTO.getIssue()!=null) {
 				output.setData(new String("Please add valid information"));
 				output.setMessage(employeeTO.getIssue());
-				output.setStatus(JSONOutputEnum.FAILURE.getValue());
+				if(employeeTO.getIssue().equalsIgnoreCase("Username already exists")) {
+					output.setStatus(StatusCode.USERNAME_ALREADY_EXISTS);
+				}
+				else if(employeeTO.getIssue().equalsIgnoreCase("Email already exists")) {
+					output.setStatus(StatusCode.EMAIL_ALREADY_EXISTS);
+				}
 				System.out.println(employeeTO.getIssue());
 			}
 			else {
@@ -110,7 +117,7 @@ public class EmployeeDetailsController {
 		return output;
 	}*/
 	
-	@RequestMapping(value="/getManagerDetails",method=RequestMethod.GET)
+	@RequestMapping(value=RESTURLConstants.GET_MANAGER_DETAILS,method=RequestMethod.GET)
 	@ResponseBody
 	public ResponseEntity getManagerDetails() {
 		
@@ -134,7 +141,7 @@ public class EmployeeDetailsController {
 	
 	
 	
-	@RequestMapping(value="/verifyManager",method=RequestMethod.POST)
+	/*@RequestMapping(value="/verifyManager",method=RequestMethod.POST)
 	@ResponseBody
 	public ResponseEntity verifyManager(@RequestBody VerifyManagerVO verifyManagerVO) {
 		boolean updatedResult=Boolean.FALSE;
@@ -150,11 +157,27 @@ public class EmployeeDetailsController {
 		
 		return new ResponseEntity(responseTO, HttpStatus.ACCEPTED);
 	
+	}*/
+	
+	@RequestMapping(value=RESTURLConstants.VERIFY_MANAGER,method=RequestMethod.POST)
+	@ResponseBody
+	public ResponseEntity verifyManager(@PathVariable("empId")String empId ) {
+		boolean updatedResult=Boolean.FALSE;
+		ResponseTO responseTO=new ResponseTO();
+		updatedResult=employeeDetailService.updateApprovalStatus(empId);
+		if(updatedResult) {
+			responseTO.setResponseCode("1");
+			responseTO.setResponseMessage("SUCCESS");
+		}else {
+			responseTO.setResponseCode("0");
+			responseTO.setResponseMessage("FAILURE");
+		}
+		
+		return new ResponseEntity(responseTO, HttpStatus.ACCEPTED);
+	
 	}
 	
-	
-	
-	@RequestMapping(value="viewTeam/{id}",method=RequestMethod.GET)
+	@RequestMapping(value=RESTURLConstants.VIEW_TEAM,method=RequestMethod.GET)
 	@ResponseBody
 	public ViewTeamTO viewTeam(@PathVariable("id") String managerId) {
 		

@@ -19,6 +19,7 @@ public class SkillTO {
 	@JsonIgnore
 	private Date updationDate;
 
+	@JsonIgnore
 	private String issue;
 	
 	public int getSkillId() {

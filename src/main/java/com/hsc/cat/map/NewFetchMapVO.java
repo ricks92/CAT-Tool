@@ -1,8 +1,8 @@
 package com.hsc.cat.map;
 
 public class NewFetchMapVO {
-	String empId;
-	int quarter;
+	private String empId;
+	private int quarter;
 	public String getEmpId() {
 		return empId;
 	}

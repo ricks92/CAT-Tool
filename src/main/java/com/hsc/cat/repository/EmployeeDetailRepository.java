@@ -21,8 +21,8 @@ public interface EmployeeDetailRepository extends JpaRepository<EmployeeDetails,
 	
 	@Modifying
 	@Transactional
-	@Query("UPDATE EmployeeDetails e SET  e.approvalStatus=:approvalStatus WHERE e.empid=:empid") 
-    int updateManagersApprovalStatus(@Param("approvalStatus") String approvalStatus,@Param("empid") String empid);
+	@Query("UPDATE EmployeeDetails e SET  e.approvalStatus='APPROVED' WHERE e.empid=:empid") 
+    int updateManagersApprovalStatus(@Param("empid") String empid);
 	
 	@Query("select e from EmployeeDetails e where  e.managerId=:managerId order by firstName asc")
 	 List<EmployeeDetails> findEmployeeUnderManager(@Param("managerId") String managerId);
@@ -37,6 +37,6 @@ public interface EmployeeDetailRepository extends JpaRepository<EmployeeDetails,
 	@Query("select e.approvalStatus from EmployeeDetails e WHERE e.empid=:empid")
 	String getApprovalStatus(@Param("empid")String empid);
 	
-	@Query("select e from EmployeeDetails e WHERE e.empid=:empid")
-	EmployeeDetails getEmail(@Param("empid")String empid);
+	@Query("select e from EmployeeDetails e WHERE e.email=:email")
+	List<EmployeeDetails> getEmail(@Param("email")String email);
 }
